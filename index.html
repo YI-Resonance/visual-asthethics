@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>近體詩動態美學實驗 - 支援透明PNG匯出</title>
+    
+    <!-- 💡 引入開源的 html2canvas 庫，負責將網頁轉譯為圖片 -->
+    <script src="https://cloudflare.com"></script>
+
+    <style>
+        /* 1. 打包您的專屬字型 */
+        @font-face {
+            font-family: 'MyCustomPoetryFont'; 
+            src: url('smili.ttf') format('truetype'); 
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* 2. 全域與畫布設定 */
+        body {
+            background-color: #f7f5f0; /* 網頁預覽用的宣紙底色 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 💡 這是專門用來導出的「藝術圖形包裝盒」 */
+        .export-wrapper {
+            background-color: transparent; /* 核心：保持透明，不吃網頁底色 */
+            padding: 30px; /* 給周圍的羽化紅暈留出呼吸空間，避免邊緣被截斷 */
+            display: inline-block;
+        }
+
+        /* 3. 核心控制：字體大小、扁平度與連動比例 */
+        .char-container {
+            font-size: 100px; 
+            transform: scaleX(0.85); /* 保持您心儀的扁平收窄比例 */
+            transform-origin: center;
+            font-family: 'MyCustomPoetryFont', "PingFang TC", "Noto Serif TC", serif;
+            font-weight: bold;
+            position: relative;
+            
+            width: 1.4em;
+            height: 1.4em;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 4. 最下層：紅色的羽化底色層（墨暈效果） */
+        .feather-background {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+
+            width: 1.1em;
+            height: 1.1em;
+            border-radius: 50%;
+
+            /* 紅色羽化漸層 */
+            background: radial-gradient(circle, rgba(186, 45, 50, 0.7) 0%, rgba(186, 45, 50, 0.3) 40%, rgba(186, 45, 50, 0) 70%);
+            filter: blur(0.08em); 
+        }
+
+        /* 5. 中間層：您的自訂 SVG 外框層 */
+        .svg-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; /* 響應您上一輪想將外框調小一點的美學設定 */
+            height: 85%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 6. 最上層：純文字層 */
+        .text-layer {
+            position: relative;
+            z-index: 3;
+            color: #1a1a1a; 
+            line-height: 1;
+        }
+
+        /* 7. 按鈕美學設計 */
+        .btn-export {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            background-color: #ba2d32; /* 胭脂紅 */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: "PingFang TC", sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .btn-export:hover {
+            background-color: #962226;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 💡 這個 wrapper 包裹了整個作品，導出時會自動把它的範圍切下來，且背景是透明的 -->
+    <div id="poetry-artpiece" class="export-wrapper">
+        <div class="char-container">
+            <!-- 最底層：紅色羽化 -->
+            <div class="feather-background"></div>
+            
+            <!-- 中間層：自訂 SVG 外框 -->
+            <svg class="svg-frame" viewBox="215 117 426 323" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://w3.org">
+                <rect x="215.368" y="117.355" opacity="0.5" fill="none" stroke="#009640" stroke-width="1.5" stroke-miterlimit="10" width="425.924" height="322.077" vector-effect="non-scaling-stroke"/>
+            </svg>
+            
+            <!-- 最上層：文字 -->
+            <div class="text-layer">角</div>
+        </div>
+    </div>
+
+    <!-- 匯出按鈕 -->
+    <button class="btn-export" onclick="exportTransparentPNG()">匯出透明 PNG</button>
+
+    <script>
+        // 💡 負責導出透明高解析度 PNG 的自動化腳本
+        function exportTransparentPNG() {
+            const target = document.getElementById('poetry-artpiece');
+            
+            // 執行 html2canvas 轉譯
+            html2canvas(target, {
+                backgroundColor: null, // 關鍵：設定背景為 null 達成完美的透明底（Alpha Channel）
+                scale: 3,              // 關鍵：將解析度放大 3 倍，確保印刷級別的極致銳利美感
+                useCORS: true,         // 允許跨網域載入資源（若未來有用到外部圖片）
+                logging: false
+            }).then(canvas => {
+                // 將渲染好的畫布轉化為 PNG 圖片數據流
+                const image = canvas.toDataURL("image/png");
+                
+                // 建立一個隱藏的下載鏈結，自動幫您下載檔案
+                const link = document.createElement('a');
+                link.download = '近體詩作品_透明底.png';
+                link.href = image;
+                link.click();
+            });
+        }
+    </script>
+
+</body>
+</html>
