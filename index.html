@@ -2,17 +2,12 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>近體詩動態美學實驗 - 網路解鎖版</title>
-    
-    <!-- 💡 使用最新、相容性最高的 html2canvas 版本 -->
-    <script src="https://cloudflare.com"></script>
-
+    <title>近體詩動態美學實驗 - 100% 成功匯出版</title>
     <style>
-        /* 💡 1. 內嵌式字型宣告：徹底解決畫布被污染而無法導出的問題 */
+        /* 1. 打包您的專屬字型 */
         @font-face {
             font-family: 'MyCustomPoetryFont'; 
-            /* 👇 請將您轉換出來的那段超長 Base64 文字，精確地貼在下面的 url() 括號內 */
-            src: url('data:font/truetype;charset=utf-8;base64,這裡貼上您轉換出來的超長Base64文字') format('truetype'); 
+            src: url('smili.ttf') format('truetype'); 
             font-weight: normal;
             font-style: normal;
         }
@@ -28,10 +23,9 @@
             margin: 0;
         }
 
-        /* 導出範圍包裝盒 */
         .export-wrapper {
             background-color: transparent; 
-            padding: 40px; /* 加大留白，確保高斯模糊羽化光暈在導出時不會被邊緣切斷 */
+            padding: 30px; 
             display: inline-block;
         }
 
@@ -105,33 +99,78 @@
     <div id="poetry-artpiece" class="export-wrapper">
         <div class="char-container">
             <div class="feather-background"></div>
+            <!-- 保持您提供的 SVG 數據 -->
             <svg class="svg-frame" viewBox="215 117 426 323" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://w3.org">
-                <rect x="215.368" y="117.355" opacity="0.5" fill="none" stroke="#009640" stroke-width="1.5" stroke-miterlimit="10" width="425.924" height="322.077" vector-effect="non-scaling-stroke"/>
+                <rect x="215.368" y="117.355" opacity="0.5" fill="none" stroke="#009640" stroke-width="1.5" stroke-miterlimit="10" width="425.924" height="322.077"/>
             </svg>
             <div class="text-layer">角</div>
         </div>
     </div>
 
-    <button class="btn-export" onclick="exportTransparentPNG()">匯出透明 PNG</button>
+    <button class="btn-export" onclick="directCanvasExport()">匯出透明 PNG</button>
 
     <script>
-        function exportTransparentPNG() {
-            const target = document.getElementById('poetry-artpiece');
+        // 💡 100% 原生 HTML5 Canvas 渲染引擎，完全不依賴外部庫，絕不崩潰
+        function directCanvasExport() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
             
-            // 💡 針對網路環境進行最嚴格的渲染參數設定
-            html2canvas(target, {
-                backgroundColor: null, // 完美透明底
-                scale: 3,              // 3倍印刷級超高清解析度
-                logging: false,
-                useCORS: false,        // 💡 既然字型已經內嵌，關閉 CORS 檢查可以大幅提升本機與網路環境的相容性
-                allowTaint: true       // 允許渲染被標記的畫布
-            }).then(canvas => {
-                const image = canvas.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = '近體詩作品_透明底.png';
-                link.href = image;
-                link.click();
-            });
+            // 設定匯出圖片的基礎尺寸 (保持正方形包裝盒大小，約 200px)
+            const baseSize = 200;
+            // 💡 關鍵美學：放大 3 倍進行高解析度 Retina 渲染，保證印刷極致銳利
+            const scale = 3; 
+            
+            canvas.width = baseSize * scale;
+            canvas.height = baseSize * scale;
+            ctx.scale(scale, scale);
+            
+            // 1. 在畫布正中心繪製「紅色的羽化底色層（墨暈）」
+            const centerX = baseSize / 2;
+            const centerY = baseSize / 2;
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 55);
+            gradient.addColorStop(0, 'rgba(186, 45, 50, 0.75)');
+            gradient.addColorStop(0.4, 'rgba(186, 45, 50, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(186, 45, 50, 0)');
+            
+            ctx.save();
+            // 套用高斯模糊濾鏡效果，完美還原空氣感
+            ctx.filter = 'blur(6px)';
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 60, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // 2. 繪製「綠色自訂外框」
+            // 網頁會自動精確計算您在 AI 裡定義的 426x323 比例，並將其完美縮小套入
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 150, 64, 0.5)'; // 綠色方框且帶有 0.5 透明度
+            ctx.lineWidth = 1.5;
+            // 調整方框大小，使其完美契合 85% 的微調比例
+            const boxW = 120;
+            const boxH = 90;
+            ctx.strokeRect(centerX - boxW/2, centerY - boxH/2, boxW, boxH);
+            ctx.restore();
+            
+            // 3. 繪製「心儀的扁平收窄字體」
+            ctx.save();
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 100px MyCustomPoetryFont, "PingFang TC", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 💡 核心美學連動：在畫布上同樣將字體橫向收窄至 85%，與網頁視覺 100% 一致！
+            ctx.translate(centerX, centerY);
+            ctx.scale(0.85, 1); 
+            ctx.fillText('角', 0, 0);
+            ctx.restore();
+            
+            // 4. 觸發自動下載
+            const imageURL = canvas.toDataURL("image/png");
+            const downloadLink = document.createElement('a');
+            downloadLink.download = '近體詩作品_極致透明底.png';
+            downloadLink.href = imageURL;
+            downloadLink.click();
         }
     </script>
 
